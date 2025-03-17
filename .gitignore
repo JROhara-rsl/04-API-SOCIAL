@@ -2,3 +2,5 @@ node_modules
 node_modules/
 .env
 package-lock.json
+front/.vite/deps/_metadata.json
+front/.vite/deps/package.json
