@@ -11,7 +11,6 @@ function App() {
       const fetchUsers = async () => {
           try{
               const { data, status } = await axios.get('http://localhost:8000/api/users/all')
-              console.log(data);
               
               if(status === 200) setUsers(data)
           }catch(error){
@@ -19,24 +18,29 @@ function App() {
           }
       }
       fetchUsers();
-      
+    }, [])
+
+    useEffect(() => {
       const fetchPosts = async () => {
-          try{
-              const { data, status } = await axios.get('http://localhost:8000/api/posts/all')
+        try{
+            const { data, status } = await axios.get('http://localhost:8000/api/posts/all')
+
+            // Transformer le tableau users en un objet clé-valeur pour un accès rapide
+            const usersMap = Object.fromEntries(users.map(user => [user._id, user]));
+
+            // Remplacer l'ID user par l'objet user correspondant
+            const updatedData = data.map(post => ({
+              ...post,
+              user: usersMap[post.user]
+            })); 
             
-              const updatedData = data.map(post => ({
-                ...post,
-                user: users[post.user] // Remplace l'ID par l'objet user correspondant
-              })); 
-              console.log(updatedData);
-              
-              if(status === 200) setPosts(data)
-          }catch(error){
-              console.log(error.message);
-          }
+            if(status === 200) setPosts(updatedData)
+        }catch(error){
+            console.log(error.message);
+        }
       }
       fetchPosts()
-    }, [])
+    }, [users])
   
   return (
     <>
@@ -45,7 +49,7 @@ function App() {
         <div key={post._id} className="post"> 
           <h2>{post.title}</h2>
           <p>{post.content}</p>
-          <span>{post.user}</span>
+          <span>{post.user ? post.user.username : ''}</span>
         </div>
       ))}
     </>
