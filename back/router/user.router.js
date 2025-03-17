@@ -7,16 +7,15 @@ const verifyToken = require('../middleware/auth')
 const UserControllerAdmin = require('../controller/userAdmin.controller')
 const UserController = require('../controller/user.controller')
 
-
-// Admin controller
-router.post('/add', UserControllerAdmin.postUser)
-router.get('/all', UserControllerAdmin.getAllUser)
-router.delete('/delete/:id', verifyToken, UserControllerAdmin.deleteUser)
-router.put('/activate/:id', verifyToken, UserControllerAdmin.activateUser)
-
 // User controller
+router.get('/all', UserController.getAllUser)
+router.post('/add', UserController.postUser)
 router.post('/login', UserController.login)
 router.put('/update/:id', verifyToken, UserController.updateUser)
 router.put('/desactivate/:id', verifyToken, UserController.desactivateUser)
+
+// Admin controller
+router.delete('/delete/:id', verifyToken, UserControllerAdmin.deleteUser)
+router.put('/activate/:id', verifyToken, UserControllerAdmin.activateUser)
 
 module.exports = router;
