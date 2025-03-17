@@ -2,6 +2,7 @@ const ENV = require('../config/env');
 const bcrypt    = require('bcrypt')
 const jwt      = require('jsonwebtoken')
 const createError = require('../middleware/error')
+const verifyAdmin = require('../middleware/authAdmin')
 
 // Model
 const Users     = require('../models/user.model');
@@ -99,10 +100,27 @@ const desactivatePost = async (req, res, next) => {
     }
 }
 
+const deletePost = async (req, res, next) => {
+    try {
+        verifyAdmin(req, res, next);
+                
+        // Supprimer l'utilisateur de la base de donnée
+        const checkPost = await Posts.findByIdAndDelete(req.params.id);
+        if(!checkPost) {
+            return next(createError(404, 'Post not found'))
+        } else {
+            return res.status(200).json('Post delete');
+        }
+    } catch(error) {
+        next(createError(500, error.message))        
+    }
+}
+
 module.exports = {
     post,
     getAllPosts,
     updatePost,
     desactivatePost,
+    deletePost,
 }
 
