@@ -25,12 +25,18 @@ const postMessage = async (req, res, next) => {
         const theMessage = await Messages.create(req.body);
 
         // Récupérer l'user dans le body 
-        // Insérer le post dans le tableau posts de l'user
+        // Insérer le message dans le tableau messages de l'user
         const user = await Users.findByIdAndUpdate(req.body.user,
             { 
-                $push: { 
-                    message: theMessage._id 
-                }
+                $push: {     message: theMessage._id     }
+            }, { new: true }
+        )
+
+        // Récupérer le receiver dans le body 
+        // Insérer le message dans le tableau messages du receiver
+        const receiver = await Users.findByIdAndUpdate(req.body.receiver,
+            { 
+                $push: {     message: theMessage._id     }
             }, { new: true }
         )
         res.status(201).json({message: 'Message created', theMessage})
@@ -39,19 +45,17 @@ const postMessage = async (req, res, next) => {
     }
 }
 
-const getAllMessage = async (req, res, next) => {
-    try {
-        const response = await Messages.find();
-        res.status(200).json(response)
-    } catch(error) {
-        next(createError(500, error.message))
-    }
-}
-
 const deleteMessage = async (req, res, next) => {
     try {
         verifyAdmin(req, res, next);
-                
+        
+        // Vérifier si l'utilisateur est authentifié
+        // Ou si l'utilisateur est admin
+        if( userToken._id.toString() !== user.id.toString() &
+            userToken.role === 'user') {
+                return next(createError(403, 'Access denied'))
+        }
+
         // Supprimer le post de la base de donnée
         const checkMessage = await Messages.findByIdAndDelete(req.params.id);
         if(!checkMessage) {
@@ -59,6 +63,43 @@ const deleteMessage = async (req, res, next) => {
         } else {
             return res.status(200).json('Message delete');
         }
+    } catch(error) {
+        next(createError(500, error.message))
+    }
+}
+
+const getAllMessage = async (req, res, next) => {
+    try {
+        verifyAdmin(req, res, next);
+
+        const response = await Messages.find();
+        res.status(200).json(response)
+    } catch(error) {
+        next(createError(500, error.message))
+    }
+}
+
+const getConversation = async (req, res, next) => {
+    try {
+        // Vérifier si l'utilisateur est connecté
+        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+            
+        // Trouver l'utilisateur connecté
+        const userToken = await Users.findById(req.user.id);
+        if(!userToken) return next(createError(404, 'User not found'))
+            
+        // Trouver si l'utilisateur existe 
+        const user = await Users.findById(req.params.id);
+        if(!user) return next(createError(404, 'User not found'))
+        
+        // Vérifier si l'utilisateur est authentifié
+        // Ou si l'utilisateur est admin
+        if( userToken._id.toString() !== user.id.toString()) {
+                return next(createError(403, 'Access denied'))
+        }
+
+        const response = await Messages.findById(req.params.id);
+        res.status(200).json(response)
     } catch(error) {
         next(createError(500, error.message))
     }

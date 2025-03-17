@@ -18,6 +18,8 @@ const verifyAdmin = async (req, res, next) => {
         userToken.role !== 'superAdmin') {
             return next(createError(403, 'Access denied'))
     }
+
+    return userToken;
 }
 
 module.exports = verifyAdmin
