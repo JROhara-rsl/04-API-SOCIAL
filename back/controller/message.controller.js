@@ -21,12 +21,17 @@ const postMessage = async (req, res, next) => {
         // Vérifier si l'utilisateur est authentifié
         if( userBody._id.toString() !== req.user.id.toString()) return next(createError(403, 'Accès refusé'))
 
+        // Vérifier que le destinataire existe
+        // et est différent de l'user
+        const receiver = await Users.findById(req.body.receiver);
+        if(!receiver || receiver._id.toString() === userBody._id.toString()) return next(createError(400, 'Bad request'))
+
         // Créer un message à partir du body de la requête
         const theMessage = await Messages.create(req.body);
 
         // Récupérer l'user dans le body 
         // Insérer le message dans le tableau messages de l'user
-        const user = await Users.findByIdAndUpdate(req.body.user,
+        await Users.findByIdAndUpdate(req.body.user,
             { 
                 $push: {     message: theMessage._id     }
             }, { new: true }
@@ -34,7 +39,7 @@ const postMessage = async (req, res, next) => {
 
         // Récupérer le receiver dans le body 
         // Insérer le message dans le tableau messages du receiver
-        const receiver = await Users.findByIdAndUpdate(req.body.receiver,
+        await Users.findByIdAndUpdate(req.body.receiver,
             { 
                 $push: {     message: theMessage._id     }
             }, { new: true }
@@ -79,7 +84,7 @@ const getAllMessage = async (req, res, next) => {
     }
 }
 
-const getConversation = async (req, res, next) => {
+const getMessageByUser = async (req, res, next) => {
     try {
         // Vérifier si l'utilisateur est connecté
         if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
@@ -92,14 +97,18 @@ const getConversation = async (req, res, next) => {
         const user = await Users.findById(req.params.id);
         if(!user) return next(createError(404, 'User not found'))
         
+        console.log(userToken._id);
+        console.log(user._id);
+        
         // Vérifier si l'utilisateur est authentifié
-        // Ou si l'utilisateur est admin
         if( userToken._id.toString() !== user.id.toString()) {
-                return next(createError(403, 'Access denied'))
+            return next(createError(403, 'Access denied'))
         }
 
-        const response = await Messages.findById(req.params.id);
-        res.status(200).json(response)
+        const message = await Messages.find({user: user.id});
+        const response = await Messages.find({receiver: user.id});
+        
+        res.status(200).json({message, response})
     } catch(error) {
         next(createError(500, error.message))
     }
@@ -109,4 +118,5 @@ module.exports = {
     postMessage,
     getAllMessage,
     deleteMessage,
+    getMessageByUser,
 }
