@@ -69,21 +69,37 @@ const updateUser = async (req, res, next) => {
 const desactivateUser = async (req, res, next) => {
     try {
         // Vérifier si l'utilisateur est connecté
-        if(req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
-        
-        // Trouer si l'utilsiateur existe 
+        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+            
+        // Trouver l'utilisateur connecté
+        const userToken = await Users.findById(req.user.id);
+        if(!userToken) return next(createError(404, 'User not found'))
+            
+        // Trouver si l'utilisateur existe 
         const user = await Users.findById(req.params.id);
         if(!user) return next(createError(404, 'User not found'))
         
         // Vérifier si l'utilisateur est authentifié
-        if(user._id.toSring() !== req.user.id.toString()) return next(createError(403, 'Access denied'))
-    } catch(error) {
+        // Ou si l'utilisateur est admin
+        if( userToken._id.toString() !== user.id.toString() &
+            userToken.role === 'user') {
+                return next(createError(403, 'Access denied'))
+        }
 
+        // Mettre à jour l'état activé de l'utilisateur
+        await Users.findByIdAndUpdate(
+            userToken.id, 
+            {isActive: false}, 
+            {new: true}
+        );
+        res.status(200).json("Compte de "+ user.username +" désactivé")
+    } catch(error) {
+        next(createError(500, error.message))
     }
 }
 
 module.exports = {
     login,
     updateUser,
-
+    desactivateUser,
 }

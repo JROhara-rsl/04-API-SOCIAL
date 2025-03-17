@@ -4,17 +4,19 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/auth')
 
-const UserControllerAdmlin = require('../controller/userAdmin.controller')
+const UserControllerAdmin = require('../controller/userAdmin.controller')
 const UserController = require('../controller/user.controller')
 
 
 // Admin controller
-router.post('/add', UserControllerAdmlin.postUser)
-router.get('/all', UserControllerAdmlin.getAllUser)
-router.delete('/delete/:id', UserControllerAdmlin.deleteUser)
+router.post('/add', UserControllerAdmin.postUser)
+router.get('/all', UserControllerAdmin.getAllUser)
+router.delete('/delete/:id', verifyToken, UserControllerAdmin.deleteUser)
+router.put('/activate/:id', verifyToken, UserControllerAdmin.activateUser)
 
 // User controller
-router.post('/login', verifyToken, UserController.login)
+router.post('/login', UserController.login)
 router.put('/update/:id', verifyToken, UserController.updateUser)
+router.put('/desactivate/:id', verifyToken, UserController.desactivateUser)
 
 module.exports = router;

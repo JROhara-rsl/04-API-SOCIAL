@@ -8,6 +8,7 @@ const app = express();
 
 // IMPORT ROUTER
 const userRouter = require('./router/user.router')
+const postRouter = require('./router/post.router')
 
 // CONNEXION MONGO
 connectMongoDB(ENV.MONGO_URI, ENV.DB_NAME)
@@ -19,6 +20,7 @@ app.use(cors());
 
 // URLS API PREFIX
 app.use("/api/users", userRouter)
+app.use("/api/posts", postRouter)
 
 // MIDDLEWARES DE GESTION D'ERROR
 app.use((error, req, res, next) => {
