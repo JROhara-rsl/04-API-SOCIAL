@@ -12,6 +12,10 @@ const messageSchema = mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: 'user',
         },
+        receiver: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'user',
+        },
         isActive: {
             type: Boolean, 
             default: true,
@@ -19,4 +23,4 @@ const messageSchema = mongoose.Schema(
     }, {    timestamps: { createdAt: true   }}
 )
 
-module.export = mongoose.model('Messages', messageSchema)
+module.exports = mongoose.model('Messages', messageSchema)

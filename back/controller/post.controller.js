@@ -104,7 +104,7 @@ const deletePost = async (req, res, next) => {
     try {
         verifyAdmin(req, res, next);
                 
-        // Supprimer l'utilisateur de la base de donnée
+        // Supprimer le post de la base de donnée
         const checkPost = await Posts.findByIdAndDelete(req.params.id);
         if(!checkPost) {
             return next(createError(404, 'Post not found'))
