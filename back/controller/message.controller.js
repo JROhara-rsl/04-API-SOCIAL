@@ -50,29 +50,6 @@ const postMessage = async (req, res, next) => {
     }
 }
 
-const deleteMessage = async (req, res, next) => {
-    try {
-        verifyAdmin(req, res, next);
-        
-        // Vérifier si l'utilisateur est authentifié
-        // Ou si l'utilisateur est admin
-        if( userToken._id.toString() !== user.id.toString() &
-            userToken.role === 'user') {
-                return next(createError(403, 'Access denied'))
-        }
-
-        // Supprimer le post de la base de donnée
-        const checkMessage = await Messages.findByIdAndDelete(req.params.id);
-        if(!checkMessage) {
-            return next(createError(404, 'Message not found'))
-        } else {
-            return res.status(200).json('Message delete');
-        }
-    } catch(error) {
-        next(createError(500, error.message))
-    }
-}
-
 const getAllMessage = async (req, res, next) => {
     try {
         verifyAdmin(req, res, next);
@@ -97,9 +74,6 @@ const getMessageByUser = async (req, res, next) => {
         const user = await Users.findById(req.params.id);
         if(!user) return next(createError(404, 'User not found'))
         
-        console.log(userToken._id);
-        console.log(user._id);
-        
         // Vérifier si l'utilisateur est authentifié
         if( userToken._id.toString() !== user.id.toString()) {
             return next(createError(403, 'Access denied'))
@@ -114,9 +88,85 @@ const getMessageByUser = async (req, res, next) => {
     }
 }
 
+const updateMessage = async (req, res, next) => {
+    try {
+        // Vérifier si l'utilisateur est connecté
+        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+        
+        // Trouver l'utilisateur connecté
+        const userToken = await Users.findById(req.user.id);
+        if(!userToken) return next(createError(404, 'User not found'))
+            
+        // Trouver le message par l'ID
+        const userMessage = await Messages.findById(req.params.id);
+        if(!userMessage) return next(createError(404, 'User not found'))
+        
+        // Vérifier si l'utilisateur est authentifié
+        if( userToken._id.toString() !== userMessage.user.toString()) {
+            return next(createError(403, 'Access denied'))
+        }
+
+        const response = await Messages.findByIdAndUpdate(req.params.id, req.body, {new: true});
+        if(!response) return next(createError(404, 'Message not tound !'))
+        res.status(201).json(response)
+    } catch(error) {
+        next(createError(500, error.message))
+    }
+}
+
+const desactivateMessage = async (req, res, next) => {
+    try {
+        // Vérifier si l'utilisateur est connecté
+        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+        
+        // Trouver l'utilisateur connecté
+        const userToken = await Users.findById(req.user.id);
+        if(!userToken) return next(createError(404, 'User not found'))
+            
+        // Trouver le message par l'ID
+        const userMessage = await Messages.findById(req.params.id);
+        if(!userMessage) return next(createError(404, 'User not found'))
+        
+        // Vérifier si l'utilisateur est authentifié
+        if( userToken._id.toString() !== userMessage.user.toString()) {
+            return next(createError(403, 'Access denied'))
+        }
+
+        // Mettre à jour l'état activé du post
+        const messageDesactivated = await Messages.findByIdAndUpdate(
+            req.params.id, 
+            {isActive: false}, 
+            {new: true}
+        );
+        res.status(200).json({message: "Message désactivé", messageDesactivated})
+
+    } catch(error) {
+        next(createError(500, error.message))
+    }
+}
+
+const deleteMessage = async (req, res, next) => {
+    try {
+        verifyAdmin(req, res, next);
+
+        // Supprimer le post de la base de donnée
+        const checkMessage = await Messages.findByIdAndDelete(req.params.id);
+        if(!checkMessage) {
+            return next(createError(404, 'Message not found'))
+        } else {
+            return res.status(200).json('Message delete');
+        }
+    } catch(error) {
+        next(createError(500, error.message))
+    }
+}
+
+
 module.exports = {
     postMessage,
     getAllMessage,
     deleteMessage,
     getMessageByUser,
+    desactivateMessage,
+    updateMessage,
 }

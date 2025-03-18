@@ -8,7 +8,7 @@ const Users     = require('../models/user.model');
 const Posts     = require('../models/post.model')
 const Messages  = require('../models/message.model')
 
-const postUser = async (req, res, next) => {
+const signUp = async (req, res, next) => {
     try {
         // Créer un mdp crypté à partir du password de la request
         const passwordHashed = await bcrypt.hash(req.body.password, 10);
@@ -126,7 +126,7 @@ const desactivateUser = async (req, res, next) => {
 }
 
 module.exports = {
-    postUser,
+    signUp,
     getAllUser,
     login,
     updateUser,

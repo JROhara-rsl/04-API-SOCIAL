@@ -9,7 +9,7 @@ const UserController = require('../controller/user.controller')
 
 // User controller
 router.get('/all', UserController.getAllUser)
-router.post('/add', UserController.postUser)
+router.post('/add', UserController.signUp)
 router.post('/login', UserController.login)
 router.put('/update/:id', verifyToken, UserController.updateUser)
 router.put('/desactivate/:id', verifyToken, UserController.desactivateUser)

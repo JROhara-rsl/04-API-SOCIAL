@@ -16,7 +16,11 @@ const postSchema = mongoose.Schema(
         },
         user: {
             type: mongoose.SchemaTypes.ObjectId,
-            ref: 'user'
+            ref: 'user',
+        },
+        like: {
+            type: Number,
+            default: 0,
         },
         isActive: {
             type: Boolean,

@@ -35,7 +35,7 @@ const post = async (req, res, next) => {
     
         // Récupérer l'user dans le body 
         // Insérer le post dans le tableau posts de l'user
-        const user = await Users.findByIdAndUpdate(req.body.user,
+        await Users.findByIdAndUpdate(req.body.user,
             { 
                 $push: { 
                   post: post._id 
@@ -61,7 +61,7 @@ const updatePost = async (req, res, next) => {
         if( userIdBody._id.toString() !== req.user.id.toString()) return next(createError(403, 'Accès refusé'))
 
         const response = await Posts.findByIdAndUpdate(req.params.id, req.body, {new: true});
-        if(!response) return next(createError(404, 'Post nof tound !'))
+        if(!response) return next(createError(404, 'Post not tound !'))
         res.status(200).json(response)
     } catch(error) {
         next(createError(500, error.message))
