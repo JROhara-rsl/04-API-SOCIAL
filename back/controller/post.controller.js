@@ -21,14 +21,14 @@ const getAllPosts = async (req, res, next) => {
 const post = async (req, res, next) => {
     try {
         // Vérifier si l'utilisateur est connecté 
-        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+        if(!req.user || !req.user.id) return next(createError(401, 'Auth required'))
         
         // Vérifier si l'utilisateur existe
         const userBody = await Users.findById(req.body.user);
         if(!userBody) return next(createError(404, 'User not found'))
             
         // Vérifier si l'utilisateur est authentifié
-        if( userBody._id.toString() !== req.user.id.toString()) return next(createError(403, 'Accès refusé'))
+        if( userBody._id.toString() !== req.user.id.toString()) return next(createError(403, 'Access denied'))
     
         // Créer un post à partir du body de la requête
         const post = await Posts.create(req.body);
@@ -51,18 +51,41 @@ const post = async (req, res, next) => {
 const updatePost = async (req, res, next) => {
     try {
         // Vérifier si l'utilisateur est connecté 
-        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+        if(!req.user || !req.user.id) return next(createError(401, 'Auth required'))
         
         // Vérifier si l'utilisateur existe
         const userIdBody = await Users.findById(req.body.user);
         if(!userIdBody) return next(createError(404, 'User not found'))
         
         // Vérifier si l'utilisateur est authentifié
-        if( userIdBody._id.toString() !== req.user.id.toString()) return next(createError(403, 'Accès refusé'))
+        if( userIdBody._id.toString() !== req.user.id.toString()) return next(createError(403, 'Accès denied'))
 
         const response = await Posts.findByIdAndUpdate(req.params.id, req.body, {new: true});
-        if(!response) return next(createError(404, 'Post not tound !'))
+        if(!response) return next(createError(404, 'Post not found !'))
         res.status(200).json(response)
+    } catch(error) {
+        next(createError(500, error.message))
+    }
+}
+
+const likePost = async (req, res, next) => {
+    try {
+        // Vérifier si l'utilisateur est connecté 
+        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+        
+        // Vérifier si le post existe
+        const postIdBody = await Posts.findById(req.params.id);
+        if(!postIdBody) return next(createError(404, 'Post not found'))
+        
+        // Vérifier si l'utilisateur a déjà liké
+        const likeInPost = await Posts.findOne({ user: req.user.id })
+        if(likeInPost) return next(createError(400, 'Post already liked'))
+        await Posts.findByIdAndUpdate(
+            req.params.id, 
+            { $push: {  like: req.user.id  }}, 
+            { new: true })
+
+        res.status(200).json({message: "Post liked"})
     } catch(error) {
         next(createError(500, error.message))
     }
@@ -71,7 +94,7 @@ const updatePost = async (req, res, next) => {
 const desactivatePost = async (req, res, next) => {
     try {
         // Vérifier si l'utilisateur est connecté 
-        if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
+        if(!req.user || !req.user.id) return next(createError(401, 'Auth required'))
 
         // Trouver l'utilisateur connecté
         const userToken = await Users.findById(req.user.id);
@@ -94,7 +117,7 @@ const desactivatePost = async (req, res, next) => {
             {isActive: false}, 
             {new: true}
         );
-        res.status(200).json({message: "Post désactivé", postDesactivated})
+        res.status(200).json({message: "Post desactivated", postDesactivated})
     } catch(error) {
         next(createError(500, error.message))
     }
@@ -120,6 +143,7 @@ module.exports = {
     post,
     getAllPosts,
     updatePost,
+    likePost,
     desactivatePost,
     deletePost,
 }

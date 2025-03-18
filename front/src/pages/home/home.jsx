@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import axios from 'axios'
+import { Link } from 'react-router';
 
 const home = () => {
     const [posts, setPosts]  = useState([]);
@@ -40,7 +41,14 @@ const home = () => {
       fetchPosts()
     }, [users])
 
-    
+    const likePost = (id) => {
+      try {
+        //axios.put('http://localhost:8000/api/posts/like/'+id) 
+      } catch(error) {
+
+      }
+    } 
+
   return (
     <div className='container'>
         <h1>Conversation</h1>
@@ -48,11 +56,12 @@ const home = () => {
           {posts.map(post => (
               <div key={post._id} className="col-4"> 
                 <div className='card p-4'>
-                  <h2>{post.title}</h2>
+                  <h3 className='card-title'>{post.title}</h3>
+                  <span>{post.createdAt}</span>
                   <p>{post.content}</p>
                   <div className='metada'>
                     <span>{post.user ? post.user.username : ''}</span>
-                    <span>{post.createdAt}</span>
+                    <button className="btn btn-outline-danger" onClick={likePost(post._id)}>{post.like.length} ❤️</button>
                   </div>
                 </div>
               </div>

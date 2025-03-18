@@ -62,7 +62,7 @@ const getAllMessage = async (req, res, next) => {
 }
 
 const getMessageByUser = async (req, res, next) => {
-    try {
+    try {        
         // Vérifier si l'utilisateur est connecté
         if(!req.user || !req.user.id) return next(createError(401, 'Authentification requise'))
             
@@ -71,18 +71,17 @@ const getMessageByUser = async (req, res, next) => {
         if(!userToken) return next(createError(404, 'User not found'))
             
         // Trouver si l'utilisateur existe 
-        const user = await Users.findById(req.params.id);
-        if(!user) return next(createError(404, 'User not found'))
-        
-        // Vérifier si l'utilisateur est authentifié
-        if( userToken._id.toString() !== user.id.toString()) {
-            return next(createError(403, 'Access denied'))
-        }
+        const receiver = await Users.findById(req.params.id);
+        if(!receiver) return next(createError(404, 'Receiver not found'))
+            
+        const message = await Messages.find(  { 
+            $or:[  
+                {'user': userToken._id, 'receiver': receiver._id}, 
+                {'user': receiver._id, 'receiver': userToken._id}  
+            ]   
+        });
 
-        const message = await Messages.find({user: user.id});
-        const response = await Messages.find({receiver: user.id});
-        
-        res.status(200).json({message, response})
+        res.status(200).json({message})
     } catch(error) {
         next(createError(500, error.message))
     }
