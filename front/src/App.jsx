@@ -1,57 +1,25 @@
-import { useState, useEffect } from 'react'
-import axios from 'axios'
+import { Routes, Route } from 'react-router'
 
+// Importing the Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css'
 
+// Component
+import Layout from './components/Layout';
+
+// Pages 
+import Home from './pages/Home/Home.jsx';
+
 function App() {
-  const [posts, setPosts]  = useState([]);
-  const [users, setUsers]  = useState([]);
   
-    useEffect(() => {
-      const fetchUsers = async () => {
-          try{
-              const { data, status } = await axios.get('http://localhost:8000/api/users/all')
-              
-              if(status === 200) setUsers(data)
-          }catch(error){
-              console.log(error.message);
-          }
-      }
-      fetchUsers();
-    }, [])
-
-    useEffect(() => {
-      const fetchPosts = async () => {
-        try{
-            const { data, status } = await axios.get('http://localhost:8000/api/posts/all')
-
-            // Transformer le tableau users en un objet clé-valeur pour un accès rapide
-            const usersMap = Object.fromEntries(users.map(user => [user._id, user]));
-
-            // Remplacer l'ID user par l'objet user correspondant
-            const updatedData = data.map(post => ({
-              ...post,
-              user: usersMap[post.user]
-            })); 
-            
-            if(status === 200) setPosts(updatedData)
-        }catch(error){
-            console.log(error.message);
-        }
-      }
-      fetchPosts()
-    }, [users])
   
   return (
     <>
-      <h1>Conversation</h1>
-      {posts.map(post => (
-        <div key={post._id} className="post"> 
-          <h2>{post.title}</h2>
-          <p>{post.content}</p>
-          <span>{post.user ? post.user.username : ''}</span>
-        </div>
-      ))}
+      <Routes>
+        <Route path="/" element={<Layout/>}>
+          <Route index element={<Home/>} />
+        </Route>
+      </Routes>
     </>
   )
 }
